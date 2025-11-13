@@ -1,5 +1,0 @@
-flask==3.0.3
-twilio==9.3.0
-gunicorn==22.0.0
-transformers==4.44.0
-torch==2.4.0+cpu
