@@ -7,7 +7,7 @@ import torch
 # ------------------- MODEL LOADING -------------------
 @st.cache_resource
 def load_model():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda_available() else 'cpu')
     model_path = "logesh1962/sms-spam-detector"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
@@ -130,9 +130,11 @@ App: https://spamdetectionforsms-and-mail.streamlit.app"""
     st.code(result_text, language=None)
 
     if st.button("Copy Result"):
+        # Escape backticks properly using .replace()
+        escaped_text = result_text.replace("`", "\\`")
         js = f"""
         <script>
-        const text = `{result_text.replace('`', '\\`')}`;
+        const text = `{escaped_text}`;
         navigator.clipboard.writeText(text).then(() => {{
             alert('Copied to clipboard!');
         }});
