@@ -49,6 +49,31 @@ if text.strip().lower() in {"help", "?"}:
 
 # ------------------- NORMAL SPAM CHECK -------------------
 if st.button("Detect Spam!") and text.strip():
+    # ------------------- COPY RESULT BUTTON -------------------
+if label == "Spam/Fake":
+    alert_emoji = "🚨"
+    safety_msg = "⚠️ ALERT: Avoid clicking links or replying!"
+else:
+    alert_emoji = "✅"
+    safety_msg = "SAFE to proceed!"
+
+result_text = f"""Spam Detector Result
+{alert_emoji} Verdict: {label}
+Confidence: {prob_spam:.1%}
+{safety_msg}
+Original Message: {text[:100]}...  # Truncated for brevity
+Check more: https://spamdetectionforsms-and-mail.streamlit.app"""
+
+# Show formatted result & copy button
+st.code(result_text, language="text")
+if st.button("📋 Copy Result"):
+    # JS for clipboard (works in Streamlit)
+    st.markdown(f"""
+    <script>
+    navigator.clipboard.writeText(`{result_text.replace('`', '\\`')}`);
+    </script>
+    """, unsafe_allow_html=True)
+    st.success("Copied! 📋 Share with friends.")
     # ----- prediction (unchanged) -----
     inputs = tokenizer(text, return_tensors='pt', truncation=True,
                        padding=True, max_length=96).to(device)
@@ -73,3 +98,4 @@ if st.button("Detect Spam!") and text.strip():
 # ------------------- FOOTER -------------------
 st.sidebar.title("About")
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
+
