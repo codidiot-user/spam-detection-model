@@ -2,7 +2,7 @@ import streamlit as st
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
+import torch  # ← THIS WAS MISSING!
 
 # ------------------- MODEL LOADING -------------------
 @st.cache_resource
@@ -130,7 +130,6 @@ App: https://spamdetectionforsms-and-mail.streamlit.app"""
     st.code(result_text, language=None)
 
     if st.button("Copy Result"):
-        # Escape backticks properly using .replace()
         escaped_text = result_text.replace("`", "\\`")
         js = f"""
         <script>
