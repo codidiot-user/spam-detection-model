@@ -2,15 +2,15 @@ import streamlit as st
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch  # ← THIS WAS MISSING!
+import torch
 
-# ------------------- MODEL LOADING -------------------
 @st.cache_resource
 def load_model():
-    device = torch.device('cuda' if torch.cuda_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model_path = "logesh1962/sms-spam-detector"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
+    model.to(device)
     model.eval()
     return tokenizer, model, device
 
@@ -145,3 +145,4 @@ App: https://spamdetectionforsms-and-mail.streamlit.app"""
 # ------------------- FOOTER -------------------
 st.sidebar.title("About")
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
+
