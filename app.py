@@ -49,28 +49,26 @@ st.sidebar.title("About")
 
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
 
-
-
-
 # =====================================
-# DARK / LIGHT MODE TOGGLE (v1.38.0+)
+# DARK / LIGHT MODE TOGGLE (FIXED)
 # =====================================
 if 'theme' not in st.session_state:
     st.session_state.theme = 'light'
 
-def toggle_theme():
-    st.session_state.theme = 'dark' if st.session_state.theme == 'light' else 'light'
-    st.rerun()
-
-# Toggle buttons — top-right corner
+# Toggle buttons — top-right
+# Toggle buttons — top-right
 col1, col2 = st.columns([10, 1])
 with col2:
     if st.session_state.theme == 'light':
-        st.button('Dark', on_click=toggle_theme, use_container_width=True)
+        if st.button('Dark', use_container_width=True):
+            st.session_state.theme = 'dark'
+            st.rerun()
     else:
-        st.button('Light', on_click=toggle_theme, use_container_width=True)
+        if st.button('Light', use_container_width=True):
+            st.session_state.theme = 'light'
+            st.rerun()
 
-# Apply theme with full styling
+# Apply theme
 if st.session_state.theme == 'dark':
     st.markdown("""
     <style>
