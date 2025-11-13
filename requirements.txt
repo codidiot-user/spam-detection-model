@@ -2,3 +2,4 @@ streamlit==1.38.0
 torch==2.4.0+cpu
 transformers==4.44.0
 tokenizers==0.19.1
+rich<14
