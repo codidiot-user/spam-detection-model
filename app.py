@@ -8,10 +8,9 @@ import torch
 @st.cache_resource
 def load_model():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model_path = "logesh1962/sms-spam-detector"  # Files are in root!
-
+    model_path = "logesh1962/sms-spam-detector"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
+    model = AutoModelForSequenceClassification.from_pretrained(model_path).to(device)
     model.eval()
     return tokenizer, model, device
 
@@ -46,56 +45,4 @@ if st.button("Detect Spam!") and text.strip():
 
 # Footer
 st.sidebar.title("About")
-
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
-
-# =====================================
-# DARK / LIGHT MODE TOGGLE (FIXED)
-# =====================================
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'light'
-
-# Toggle buttons — top-right
-# Toggle buttons — top-right
-col1, col2 = st.columns([10, 1])
-with col2:
-    if st.session_state.theme == 'light':
-        if st.button('Dark', use_container_width=True):
-            st.session_state.theme = 'dark'
-            st.rerun()
-    else:
-        if st.button('Light', use_container_width=True):
-            st.session_state.theme = 'light'
-            st.rerun()
-
-# Apply theme
-if st.session_state.theme == 'dark':
-    st.markdown("""
-    <style>
-    .stApp {
-        background: #0e1117;
-        color: #e0e0e0;
-    }
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea {
-        background-color: #1f2937 !important;
-        color: #e0e0e0 !important;
-        border: 1px solid #374151 !important;
-    }
-    .stButton > button {
-        background-color: #374151;
-        color: #e0e0e0;
-    }
-    .stMarkdown, .stCaption, .stSubheader, h1, h2, h3 {
-        color: #e0e0e0 !important;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #1a1c23;
-    }
-    .stAlert {
-        background-color: #1f2937;
-        border: 1px solid #374151;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
