@@ -4,9 +4,10 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
 
+# ------------------- MODEL LOADING -------------------
 @st.cache_resource
 def load_model():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda_available() else 'cpu')
     model_path = "logesh1962/sms-spam-detector"
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
@@ -15,52 +16,6 @@ def load_model():
     return tokenizer, model, device
 
 tokenizer, model, device = load_model()
-
-# ------------------- DARK/LIGHT MODE TOGGLE -------------------
-if 'theme' not in st.session_state:
-    st.session_state.theme = 'light'
-
-col1, col2 = st.columns([10, 1])
-with col2:
-    if st.session_state.theme == 'light':
-        if st.button('Dark', use_container_width=True):
-            st.session_state.theme = 'dark'
-            st.rerun()
-    else:
-        if st.button('Light', use_container_width=True):
-            st.session_state.theme = 'light'
-            st.rerun()
-
-# Apply theme
-if st.session_state.theme == 'dark':
-    st.markdown("""
-    <style>
-    .stApp {
-        background: #0e1117;
-        color: #e0e0e0;
-    }
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea {
-        background-color: #1f2937 !important;
-        color: #e0e0e0 !important;
-        border: 1px solid #374151 !important;
-    }
-    .stButton > button {
-        background-color: #374151;
-        color: #e0e0e0;
-    }
-    .stMarkdown, .stCaption, .stSubheader, h1, h2, h3 {
-        color: #e0e0e0 !important;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #1a1c23;
-    }
-    .stAlert {
-        background-color: #1f2937;
-        border: 1px solid #374151;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 # ------------------- UI -------------------
 st.title("Spam Detector")
@@ -145,4 +100,3 @@ App: https://spamdetectionforsms-and-mail.streamlit.app"""
 # ------------------- FOOTER -------------------
 st.sidebar.title("About")
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
-
