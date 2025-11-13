@@ -16,6 +16,52 @@ def load_model():
 
 tokenizer, model, device = load_model()
 
+# ------------------- DARK/LIGHT MODE TOGGLE -------------------
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'
+
+col1, col2 = st.columns([10, 1])
+with col2:
+    if st.session_state.theme == 'light':
+        if st.button('Dark', use_container_width=True):
+            st.session_state.theme = 'dark'
+            st.rerun()
+    else:
+        if st.button('Light', use_container_width=True):
+            st.session_state.theme = 'light'
+            st.rerun()
+
+# Apply theme
+if st.session_state.theme == 'dark':
+    st.markdown("""
+    <style>
+    .stApp {
+        background: #0e1117;
+        color: #e0e0e0;
+    }
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea {
+        background-color: #1f2937 !important;
+        color: #e0e0e0 !important;
+        border: 1px solid #374151 !important;
+    }
+    .stButton > button {
+        background-color: #374151;
+        color: #e0e0e0;
+    }
+    .stMarkdown, .stCaption, .stSubheader, h1, h2, h3 {
+        color: #e0e0e0 !important;
+    }
+    section[data-testid="stSidebar"] {
+        background-color: #1a1c23;
+    }
+    .stAlert {
+        background-color: #1f2937;
+        border: 1px solid #374151;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # ------------------- UI -------------------
 st.title("Spam Detector")
 st.write("Paste your message below — I'll scan for spam/scams!")
@@ -28,53 +74,28 @@ text = st.text_area(
 
 # ------------------- HELP COMMAND -------------------
 HELP_TEXT = """
-### How to use
-1. **Paste any SMS / WhatsApp message** into the box.  
-2. Click **Detect Spam!** – the AI will tell you **SAFE** or **SPAM** with a confidence %.
+### How to Use
+1. **Paste any SMS / WhatsApp / Email** into the box.  
+2. Click **Detect Spam!** – AI tells you **SAFE** or **SPAM**.
 
 ### Tips
-- Short messages work best (≤ 96 tokens).  
-- Links, phone numbers, or “free” giveaways raise the spam score.  
-- The model is fine-tuned on ~50k English SMS.
+- Short messages work best.  
+- Links, "free", or urgent calls = high spam.  
+- Model trained on 50k+ SMS.
 
 ### Commands
-- `help` or `?` → show this help page.  
+- `help` or `?` → Show this help  
+- `copy` → (after result) Copy verdict
 
-*Powered by RoBERTa fine-tuned on 50k SMS messages.*
+*Powered by RoBERTa fine-tuned on 50k SMS.*
 """
 
 if text.strip().lower() in {"help", "?"}:
     st.markdown(HELP_TEXT)
-    st.stop()                     # stop further execution (no spam check)
+    st.stop()
 
-# ------------------- NORMAL SPAM CHECK -------------------
+# ------------------- SPAM DETECTION -------------------
 if st.button("Detect Spam!") and text.strip():
-    # ------------------- COPY RESULT BUTTON -------------------
-if label == "Spam/Fake":
-    alert_emoji = "🚨"
-    safety_msg = "⚠️ ALERT: Avoid clicking links or replying!"
-else:
-    alert_emoji = "✅"
-    safety_msg = "SAFE to proceed!"
-
-result_text = f"""Spam Detector Result
-{alert_emoji} Verdict: {label}
-Confidence: {prob_spam:.1%}
-{safety_msg}
-Original Message: {text[:100]}...  # Truncated for brevity
-Check more: https://spamdetectionforsms-and-mail.streamlit.app"""
-
-# Show formatted result & copy button
-st.code(result_text, language="text")
-if st.button("📋 Copy Result"):
-    # JS for clipboard (works in Streamlit)
-    st.markdown(f"""
-    <script>
-    navigator.clipboard.writeText(`{result_text.replace('`', '\\`')}`);
-    </script>
-    """, unsafe_allow_html=True)
-    st.success("Copied! 📋 Share with friends.")
-    # ----- prediction (unchanged) -----
     inputs = tokenizer(text, return_tensors='pt', truncation=True,
                        padding=True, max_length=96).to(device)
     with torch.no_grad():
@@ -82,7 +103,7 @@ if st.button("📋 Copy Result"):
     prob_spam = torch.softmax(outputs.logits, dim=-1)[0][1].item()
     label = "Spam/Fake" if prob_spam > 0.3 else "Legitimate"
 
-    # ----- display -----
+    # ----- Display Result -----
     st.subheader(f"**Result: {label}**")
     st.metric("Spam Confidence", f"{prob_spam:.1%}")
 
@@ -95,7 +116,31 @@ if st.button("📋 Copy Result"):
     if label == "Spam/Fake":
         st.warning("This looks scammy — avoid clicking links or replying!")
 
+    # ------------------- COPY RESULT BUTTON -------------------
+    alert_emoji = "ALERT" if label == "Spam/Fake" else "SAFE"
+    safety_msg = "Avoid links & replies!" if label == "Spam/Fake" else "You're good to go!"
+
+    result_text = f"""SPAM DETECTOR RESULT
+{alert_emoji} Verdict: {label}
+Confidence: {prob_spam:.1%}
+{safety_msg}
+Original: {text.strip()[:120]}{'...' if len(text) > 120 else ''}
+App: https://spamdetectionforsms-and-mail.streamlit.app"""
+
+    st.code(result_text, language=None)
+
+    if st.button("Copy Result"):
+        js = f"""
+        <script>
+        const text = `{result_text.replace('`', '\\`')}`;
+        navigator.clipboard.writeText(text).then(() => {{
+            alert('Copied to clipboard!');
+        }});
+        </script>
+        """
+        st.components.v1.html(js, height=0)
+        st.success("Copied! Share with friends.")
+
 # ------------------- FOOTER -------------------
 st.sidebar.title("About")
 st.sidebar.info("Powered by RoBERTa fine-tuned on 50k SMS messages.")
-
